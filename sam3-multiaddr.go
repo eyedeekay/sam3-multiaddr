@@ -33,6 +33,7 @@ func (addr I2PMultiaddr) Decapsulate(multiaddr ma.Multiaddr) ma.Multiaddr {
 
 func (addr I2PMultiaddr) Protocols() []ma.Protocol {
 	p := []ma.Protocol{}
+    p = append(p, ma.Protocol{ Code: P_GARLIC_NTCP, Name: "ntcp", Size: 31})
     p = append(p, addr.baseMultiAddress.Protocols()...)
 	return p
 }
