@@ -1,4 +1,4 @@
-package sam3
+package multiaddrsam
 
 import (
 	. "github.com/eyedeekay/sam3"
