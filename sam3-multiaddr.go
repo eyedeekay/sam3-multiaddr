@@ -7,12 +7,16 @@ import (
 )
 
 type I2PMultiaddr struct {
-	address          string
+	//address          string
 	baseMultiAddress ma.Multiaddr
 	I2PAddr
 }
 
-var Garlic = 445
+var P_GARLIC_NTCP = 445
+
+func (addr I2PMultiaddr) Address() *I2PAddr {
+	return &addr.I2PAddr
+}
 
 //
 func (addr I2PMultiaddr) Encapsulate(multiaddr ma.Multiaddr) ma.Multiaddr {
@@ -29,6 +33,7 @@ func (addr I2PMultiaddr) Decapsulate(multiaddr ma.Multiaddr) ma.Multiaddr {
 
 func (addr I2PMultiaddr) Protocols() []ma.Protocol {
 	p := []ma.Protocol{}
+    p = append(p, addr.baseMultiAddress.Protocols()...)
 	return p
 }
 
@@ -40,23 +45,25 @@ func (addr I2PMultiaddr) Equal(multiaddr ma.Multiaddr) bool {
 }
 
 func (addr I2PMultiaddr) ValueForProtocol(code int) (string, error) {
-	if code == Garlic {
+	if code == P_GARLIC_NTCP {
 		return addr.String(), nil
 	}
 	return addr.baseMultiAddress.ValueForProtocol(code)
 }
 
 func NewI2PMultiaddr(s string) (I2PMultiaddr, error) {
-	multiAddress, err := ma.NewMultiaddr(s)
-	if err != nil {
-		return multiAddress.(I2PMultiaddr), err
-	}
+	var multiAddress ma.Multiaddr
 	m := multiAddress.(I2PMultiaddr)
-	m.address, err = m.ValueForProtocol(Garlic)
+	var err error
+	m.I2PAddr, err = NewI2PAddrFromString(s)
 	if err != nil {
 		return m, err
 	}
-	addressAsMultiAddress, err := ma.NewMultiaddr("/garlic/" + m.address)
+	address, err := m.ValueForProtocol(P_GARLIC_NTCP)
+	if err != nil {
+		return m, err
+	}
+	addressAsMultiAddress, err := ma.NewMultiaddr("/garlic/" + address)
 	if err != nil {
 		return addressAsMultiAddress.(I2PMultiaddr), err
 	}
