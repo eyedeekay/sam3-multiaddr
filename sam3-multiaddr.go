@@ -61,10 +61,7 @@ func (addr I2PMultiaddr) Equal(multiaddr ma.Multiaddr) bool {
 }
 
 func (addr I2PMultiaddr) ValueForProtocol(code int) (string, error) {
-	if code == P_GARLIC_NTCP {
-		return string(addr.I2PAddr.String()), nil
-	}
-	if code == P_GARLIC_SSU {
+	if code == addr.Code {
 		return string(addr.I2PAddr.String()), nil
 	}
 	return addr.baseMultiAddress.ValueForProtocol(code)
