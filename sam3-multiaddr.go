@@ -43,7 +43,6 @@ func (addr I2PMultiaddr) Decapsulate(multiaddr ma.Multiaddr) ma.Multiaddr {
 		}
 	}
 	tmp := strings.Replace(multiAddrString, i2pAddrString, "", -1)
-	//fmt.Printf("Removing: %s \n from %s \n to get %s\n", i2pAddrString, multiAddrString, tmp)
 	baddr, _ := ma.NewMultiaddr(tmp)
 	return baddr
 }
