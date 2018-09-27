@@ -1,20 +1,22 @@
 package multiaddrsam
 
 import (
-    "fmt"
-    "strings"
+	"fmt"
+	"strings"
 
 	. "github.com/eyedeekay/sam3"
 	ma "github.com/multiformats/go-multiaddr"
 )
 
 type I2PMultiaddr struct {
-    Name string
+	Name             string
 	baseMultiAddress ma.Multiaddr
 	I2PAddr
 }
 
+// These were picked arbitrarily. They will probably change.
 var P_GARLIC_NTCP = 445
+var P_GARLIC_SSU = 890
 
 func (addr I2PMultiaddr) Address() *I2PAddr {
 	return &addr.I2PAddr
@@ -35,7 +37,7 @@ func (addr I2PMultiaddr) Decapsulate(multiaddr ma.Multiaddr) ma.Multiaddr {
 
 func (addr I2PMultiaddr) Protocols() []ma.Protocol {
 	p := []ma.Protocol{}
-	p = append(p, ma.Protocol{Code: P_GARLIC_NTCP, Name: addr.Name , Size: 31})
+	p = append(p, ma.Protocol{Code: P_GARLIC_NTCP, Name: addr.Name, Size: 31})
 	p = append(p, addr.baseMultiAddress.Protocols()...)
 	return p
 }
@@ -58,10 +60,10 @@ func NewI2PMultiaddr(inputs string) (I2PMultiaddr, error) {
 	var m I2PMultiaddr
 	var err error
 	if i := strings.SplitN(inputs, "/ntcp/", 2); len(i) == 2 {
-		splitInputs := strings.Split(".b64.i2p", inputs + ".b64.i2p")
-        if len(splitInputs) != 2 {
-            return m, fmt.Errorf("sam3-multiaddr Error: %s", "Malformed address in i2p Multiaddr" )
-        }
+		splitInputs := strings.Split(".b64.i2p", inputs+".b64.i2p/")
+		if len(splitInputs) != 2 {
+			return m, fmt.Errorf("sam3-multiaddr Error: %s", "Malformed address in i2p Multiaddr")
+		}
 		m.I2PAddr, err = NewI2PAddrFromString(inputs)
 		if err != nil {
 			return m, err
@@ -75,8 +77,10 @@ func NewI2PMultiaddr(inputs string) (I2PMultiaddr, error) {
 			return addressAsMultiAddress, err
 		}
 		m.baseMultiAddress = m.Decapsulate(addressAsMultiAddress)
-        m.Name = "ntcp"
+		m.Name = "ntcp"
 		return m, err
+	} else if i := strings.SplitN(inputs, "/ssu/", 2); len(i) == 2 {
+		return m, fmt.Errorf("sam3-multiaddr Error: %s", "ssu isn't implemented yet. Come back later.")
 	}
-    return m, fmt.Errorf("sam3-multiaddr Error: %s", "Not an i2p Multiaddr" )
+	return m, fmt.Errorf("sam3-multiaddr Error: %s", "Not an i2p Multiaddr")
 }
