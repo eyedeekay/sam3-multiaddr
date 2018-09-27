@@ -61,47 +61,24 @@ func NewI2PMultiaddr(inputs string) (I2PMultiaddr, error) {
 	var m I2PMultiaddr
 	var err error
 	if i := strings.SplitN(inputs, "/ntcp/", 2); len(i) == 2 {
-		splitInputs := strings.Split(".b64.i2p", inputs+".b64.i2p/")
-		if len(splitInputs) < 1 {
-			return m, fmt.Errorf("sam3-multiaddr Error: %s, %s", "Malformed address in i2p Multiaddr", inputs)
-		}
-		m.I2PAddr, err = NewI2PAddrFromString(splitInputs[0])
+		m.I2PAddr, err = NewI2PAddrFromString(i[1])
 		if err != nil {
 			return m, err
 		}
-		address, err := m.ValueForProtocol(P_GARLIC_NTCP)
-		if err != nil {
-			return m, err
-		}
-		addressAsMultiAddress, err := NewI2PMultiaddr("/ntcp/" + address)
-		if err != nil {
-			return addressAsMultiAddress, err
-		}
-		m.baseMultiAddress = m.Decapsulate(addressAsMultiAddress)
+		m.baseMultiAddress = m.Decapsulate(m)
 		m.Name = "ntcp"
 		m.Code = P_GARLIC_NTCP
 		return m, err
-	} else if i := strings.SplitN(inputs, "/ssu/", 2); len(i) == 2 {
-		splitInputs := strings.Split(".b64.i2p", inputs+".b64.i2p/")
-		if len(splitInputs) < 1 {
-			return m, fmt.Errorf("sam3-multiaddr Error: %s, %s", "Malformed address in i2p Multiaddr", inputs)
-		}
-		m.I2PAddr, err = NewI2PAddrFromString(splitInputs[0])
+	}
+	if i := strings.SplitN(inputs, "/ssu/", 2); len(i) == 2 {
+		m.I2PAddr, err = NewI2PAddrFromString(i[1])
 		if err != nil {
 			return m, err
 		}
-		address, err := m.ValueForProtocol(P_GARLIC_SSU)
-		if err != nil {
-			return m, err
-		}
-		addressAsMultiAddress, err := NewI2PMultiaddr("/ssu/" + address)
-		if err != nil {
-			return addressAsMultiAddress, err
-		}
-		m.baseMultiAddress = m.Decapsulate(addressAsMultiAddress)
+		m.baseMultiAddress = m.Decapsulate(m)
 		m.Name = "ssu"
 		m.Code = P_GARLIC_SSU
-		return m, fmt.Errorf("sam3-multiaddr Error: %s, %s", "ssu isn't implemented yet. Come back later.", splitInputs[0])
+		return m, fmt.Errorf("sam3-multiaddr Error: %s, %s", "ssu isn't implemented yet. Come back later.", i[1])
 	}
 	return m, fmt.Errorf("sam3-multiaddr Error: %s", "Not an i2p Multiaddr")
 }
