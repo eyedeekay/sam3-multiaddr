@@ -2,14 +2,14 @@ package multiaddrsam
 
 import (
 	. "github.com/eyedeekay/sam3"
-    "log"
+	"log"
 	"testing"
 )
 
 func TestMain(t *testing.T) {
 	k, e := createEepServiceKey()
 	if e != nil {
-        log.Println(e)
+		log.Println(e)
 		t.Fatal(e.Error())
 	}
 	NewI2PMultiaddr("/ntcp/" + k.String())

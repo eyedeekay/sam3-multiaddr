@@ -62,7 +62,7 @@ func NewI2PMultiaddr(inputs string) (I2PMultiaddr, error) {
 	if i := strings.SplitN(inputs, "/ntcp/", 2); len(i) == 2 {
 		splitInputs := strings.Split(".b64.i2p", inputs+".b64.i2p/")
 		if len(splitInputs) != 2 {
-			return m, fmt.Errorf("sam3-multiaddr Error: %s", "Malformed address in i2p Multiaddr")
+			return m, fmt.Errorf("sam3-multiaddr Error: %s, %s", "Malformed address in i2p Multiaddr", inputs)
 		}
 		m.I2PAddr, err = NewI2PAddrFromString(inputs)
 		if err != nil {
@@ -80,7 +80,7 @@ func NewI2PMultiaddr(inputs string) (I2PMultiaddr, error) {
 		m.Name = "ntcp"
 		return m, err
 	} else if i := strings.SplitN(inputs, "/ssu/", 2); len(i) == 2 {
-		return m, fmt.Errorf("sam3-multiaddr Error: %s", "ssu isn't implemented yet. Come back later.")
+		return m, fmt.Errorf("sam3-multiaddr Error: %s, %s", "ssu isn't implemented yet. Come back later.", inputs)
 	}
 	return m, fmt.Errorf("sam3-multiaddr Error: %s", "Not an i2p Multiaddr")
 }
