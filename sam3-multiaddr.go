@@ -49,7 +49,7 @@ func (addr I2PMultiaddr) Decapsulate(multiaddr ma.Multiaddr) ma.Multiaddr {
 
 func (addr I2PMultiaddr) Protocols() []ma.Protocol {
 	p := []ma.Protocol{}
-	p = append(p, ma.Protocol{Code: P_GARLIC_NTCP, Name: addr.Name, Size: 31})
+	p = append(p, ma.Protocol{Code: addr.Code, Name: addr.Name, Size: 31})
 	return p
 }
 
@@ -82,7 +82,7 @@ func NewI2PMultiaddr(inputs string) (I2PMultiaddr, error) {
 		m.baseMultiAddress = m.Decapsulate(m)
 		m.Name = "ntcp"
 		m.Code = P_GARLIC_NTCP
-		return m, err
+		return m, nil
 	}
 	if i := strings.SplitN(inputs, "/ssu/", 2); len(i) == 2 {
 		s := strings.Split(i[1], "/")
