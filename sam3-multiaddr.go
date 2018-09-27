@@ -61,7 +61,7 @@ func NewI2PMultiaddr(inputs string) (I2PMultiaddr, error) {
 	var err error
 	if i := strings.SplitN(inputs, "/ntcp/", 2); len(i) == 2 {
 		splitInputs := strings.Split(".b64.i2p", inputs+".b64.i2p/")
-		if len(splitInputs) != 2 {
+		if len(splitInputs) > 1 {
 			return m, fmt.Errorf("sam3-multiaddr Error: %s, %s", "Malformed address in i2p Multiaddr", inputs)
 		}
 		m.I2PAddr, err = NewI2PAddrFromString(inputs)
