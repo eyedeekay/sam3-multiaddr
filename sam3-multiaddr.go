@@ -25,15 +25,27 @@ func (addr I2PMultiaddr) Address() *I2PAddr {
 
 //
 func (addr I2PMultiaddr) Encapsulate(multiaddr ma.Multiaddr) ma.Multiaddr {
-	if !strings.Contains(addr.String(), multiaddr.String()) {
-		addr, _ = NewI2PMultiaddr(addr.String() + multiaddr.String())
+	if strings.Contains(addr.String(), multiaddr.String()) {
+		return addr
 	}
-	return addr
+	i2pAddrString := "/ntcp/" + addr.String()
+	multiAddrString := "/" + multiaddr.Protocols()[0].Name + "/" + multiaddr.String()
+	baddr, _ := NewI2PMultiaddr(i2pAddrString + multiAddrString)
+	return baddr
 }
 
 func (addr I2PMultiaddr) Decapsulate(multiaddr ma.Multiaddr) ma.Multiaddr {
-	addr, _ = NewI2PMultiaddr(strings.Replace(addr.String(), multiaddr.String(), "", -1))
-	return addr
+	i2pAddrString := "/ntcp/" + addr.String()
+	var multiAddrString string
+	for _, mp := range multiaddr.Protocols() {
+		if mp.Name != "" {
+			multiAddrString += "/" + mp.Name + "/" + multiaddr.String()
+		}
+	}
+	tmp := strings.Replace(multiAddrString, i2pAddrString, "", -1)
+	//fmt.Printf("Removing: %s \n from %s \n to get %s\n", i2pAddrString, multiAddrString, tmp)
+	baddr, _ := ma.NewMultiaddr(tmp)
+	return baddr
 }
 
 func (addr I2PMultiaddr) Protocols() []ma.Protocol {
@@ -53,6 +65,9 @@ func (addr I2PMultiaddr) ValueForProtocol(code int) (string, error) {
 	if code == P_GARLIC_NTCP {
 		return string(addr.I2PAddr.String()), nil
 	}
+	if code == P_GARLIC_SSU {
+		return string(addr.I2PAddr.String()), nil
+	}
 	return addr.baseMultiAddress.ValueForProtocol(code)
 }
 
@@ -60,7 +75,8 @@ func NewI2PMultiaddr(inputs string) (I2PMultiaddr, error) {
 	var m I2PMultiaddr
 	var err error
 	if i := strings.SplitN(inputs, "/ntcp/", 2); len(i) == 2 {
-		m.I2PAddr, err = NewI2PAddrFromString(i[1])
+		s := strings.Split(i[1], "/")
+		m.I2PAddr, err = NewI2PAddrFromString(s[0])
 		if err != nil {
 			return m, err
 		}
@@ -70,14 +86,15 @@ func NewI2PMultiaddr(inputs string) (I2PMultiaddr, error) {
 		return m, err
 	}
 	if i := strings.SplitN(inputs, "/ssu/", 2); len(i) == 2 {
-		m.I2PAddr, err = NewI2PAddrFromString(i[1])
+		s := strings.Split(i[1], "/")
+		m.I2PAddr, err = NewI2PAddrFromString(s[0])
 		if err != nil {
 			return m, err
 		}
 		m.baseMultiAddress = m.Decapsulate(m)
 		m.Name = "ssu"
 		m.Code = P_GARLIC_SSU
-		return m, fmt.Errorf("sam3-multiaddr Error: %s, %s", "ssu isn't implemented yet. Come back later.", i[1])
+		return m, fmt.Errorf("sam3-multiaddr Error: %s, %s", "ssu isn't implemented yet. Come back later.", s[0])
 	}
 	return m, fmt.Errorf("sam3-multiaddr Error: %s", "Not an i2p Multiaddr")
 }
