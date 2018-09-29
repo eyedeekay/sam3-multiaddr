@@ -1,6 +1,7 @@
 package multiaddrsam
 
 import (
+    "encoding/binary"
 	"fmt"
 	"strings"
 
@@ -11,6 +12,7 @@ import (
 type I2PMultiaddr struct {
 	Name             string
 	Code             int
+    VCode            []byte
 	baseMultiAddress ma.Multiaddr
 	I2PAddr
 }
@@ -60,7 +62,12 @@ func (addr I2PMultiaddr) Decapsulate(multiaddr ma.Multiaddr) ma.Multiaddr {
 
 func (addr I2PMultiaddr) Protocols() []ma.Protocol {
 	p := []ma.Protocol{}
-	p = append(p, ma.Protocol{Code: addr.Code, Name: addr.Name, Size: 31})
+	p = append(p, ma.Protocol{
+        Code: addr.Code,
+        Name: addr.Name,
+        Size: 0,
+        Path: false,
+    })
 	if addr.baseMultiAddress != nil {
 		for _, mp := range addr.baseMultiAddress.Protocols() {
 			if mp.Name != "" {
@@ -88,6 +95,7 @@ func (addr I2PMultiaddr) ValueForProtocol(code int) (string, error) {
 func NewI2PMultiaddr(inputs string) (I2PMultiaddr, error) {
 	var m I2PMultiaddr
 	var err error
+    m.VCode = make([]byte, 2)
 	if i := strings.SplitN(inputs, "/ntcp/", 2); len(i) == 2 {
 		s := strings.Split(i[1], "/")
 		m.I2PAddr, err = NewI2PAddrFromString(s[0])
@@ -97,6 +105,7 @@ func NewI2PMultiaddr(inputs string) (I2PMultiaddr, error) {
 		m.baseMultiAddress = m.Decapsulate(m)
 		m.Name = "ntcp"
 		m.Code = P_GARLIC_NTCP
+        binary.PutVarint(m.VCode, int64(m.Code))
 		return m, nil
 	}
 	if i := strings.SplitN(inputs, "/ssu/", 2); len(i) == 2 {
@@ -108,6 +117,7 @@ func NewI2PMultiaddr(inputs string) (I2PMultiaddr, error) {
 		m.baseMultiAddress = m.Decapsulate(m)
 		m.Name = "ssu"
 		m.Code = P_GARLIC_SSU
+        binary.PutVarint(m.VCode, int64(m.Code))
 		return m, fmt.Errorf("sam3-multiaddr Error: %s, %s", "ssu isn't implemented yet. Come back later.", s[0])
 	}
 	return m, fmt.Errorf("sam3-multiaddr Error: %s", "Not an i2p Multiaddr")
