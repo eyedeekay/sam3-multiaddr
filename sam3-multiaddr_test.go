@@ -12,8 +12,13 @@ func TestNTCP(t *testing.T) {
 		log.Println(e)
 		t.Fatal(e.Error())
 	}
-	NewI2PMultiaddr("/ntcp/" + k.String())
-	log.Println("Successfully ran the ntcp test", k.String())
+	x, e := NewI2PMultiaddr("/ntcp/" + k.String())
+	if e != nil {
+		log.Println(e)
+		t.Fatal(e.Error())
+	}
+	log.Printf("Successfully ran the ntcp test\n  %s\n  %s\n", k.String(), x.String())
+    log.Println("  ", x.Protocols())
 }
 
 func TestSSU(t *testing.T) {
@@ -22,8 +27,13 @@ func TestSSU(t *testing.T) {
 		log.Println(e)
 		t.Fatal(e.Error())
 	}
-	NewI2PMultiaddr("/ssu/" + k.String())
-	log.Println("Successfully ran the ssu test", k.String())
+	x, e := NewI2PMultiaddr("/ssu/" + k.String())
+	if e == nil {
+		log.Println(e)
+		t.Fatal(e.Error())
+	}
+	log.Printf("Successfully ran the ntcp test\n  %s\n  %s\n", k.String(), x.String())
+    log.Println("  ", x.Protocols())
 }
 
 func createEepServiceKey() (*I2PKeys, error) {

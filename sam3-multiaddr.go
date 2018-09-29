@@ -24,32 +24,50 @@ func (addr I2PMultiaddr) Address() *I2PAddr {
 }
 
 //
+func (addr I2PMultiaddr) Bytes() []byte {
+	return []byte("/ntcp/" + addr.Address().String())
+}
+
+func (addr I2PMultiaddr) String() string {
+    return string(addr.Bytes())
+}
+
+//
 func (addr I2PMultiaddr) Encapsulate(multiaddr ma.Multiaddr) ma.Multiaddr {
-	if strings.Contains(addr.String(), multiaddr.String()) {
-		return addr
-	}
-	i2pAddrString := "/ntcp/" + addr.String()
-	multiAddrString := "/" + multiaddr.Protocols()[0].Name + "/" + multiaddr.String()
-	baddr, _ := NewI2PMultiaddr(i2pAddrString + multiAddrString)
+	mb := addr.Bytes()
+	ob := multiaddr.Bytes()
+
+	rb := make([]byte, len(mb)+len(ob))
+
+	copy(rb, mb)
+	copy(rb[len(mb):], ob)
+	baddr, _ := NewI2PMultiaddr(string(rb))
 	return baddr
 }
 
 func (addr I2PMultiaddr) Decapsulate(multiaddr ma.Multiaddr) ma.Multiaddr {
-	i2pAddrString := "/ntcp/" + addr.String()
-	var multiAddrString string
-	for _, mp := range multiaddr.Protocols() {
-		if mp.Name != "" {
-			multiAddrString += "/" + mp.Name + "/" + multiaddr.String()
-		}
+	ms := string(addr.Bytes())
+	os := string(multiaddr.Bytes())
+
+	if i := strings.LastIndex(ms, os); i > 0 {
+		baddr, _ := ma.NewMultiaddr(ms[:i])
+		return baddr
 	}
-	tmp := strings.Replace(multiAddrString, i2pAddrString, "", -1)
-	baddr, _ := ma.NewMultiaddr(tmp)
+
+	baddr, _ := ma.NewMultiaddr(addr.String())
 	return baddr
 }
 
 func (addr I2PMultiaddr) Protocols() []ma.Protocol {
 	p := []ma.Protocol{}
 	p = append(p, ma.Protocol{Code: addr.Code, Name: addr.Name, Size: 31})
+	if addr.baseMultiAddress != nil {
+		for _, mp := range addr.baseMultiAddress.Protocols() {
+			if mp.Name != "" {
+				p = append(p, mp)
+			}
+		}
+	}
 	return p
 }
 
