@@ -18,7 +18,7 @@ func TestNTCP(t *testing.T) {
 		t.Fatal(e.Error())
 	}
 	log.Printf("Successfully ran the ntcp test\n  %s\n  %s\n", k.String(), x.String())
-    log.Println("  ", x.Protocols())
+	log.Println("  ", x.Protocols())
 }
 
 func TestSSU(t *testing.T) {
@@ -33,7 +33,7 @@ func TestSSU(t *testing.T) {
 		t.Fatal(e.Error())
 	}
 	log.Printf("Successfully ran the ntcp test\n  %s\n  %s\n", k.String(), x.String())
-    log.Println("  ", x.Protocols())
+	log.Println("  ", x.Protocols())
 }
 
 func createEepServiceKey() (*I2PKeys, error) {
