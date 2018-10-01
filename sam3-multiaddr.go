@@ -10,14 +10,14 @@ import (
 )
 
 type I2PMultiaddr struct {
-	Name             string
-	Code             int
-	VCode            []byte
-	samhost          string
-	samport          string
-	bytes            []byte
+	Name    string
+	Code    int
+	VCode   []byte
+	samhost string
+	samport string
+	bytes   []byte
 
-    I2POnly          bool
+	I2POnly          bool
 	baseMultiAddress ma.Multiaddr
 	I2PAddr
 }
@@ -42,15 +42,15 @@ func (addr I2PMultiaddr) SAMAddress() string {
 
 //
 func (addr I2PMultiaddr) Bytes() []byte {
-    if addr.I2POnly {
-        return []byte(addr.SAMAddress() + "/ntcp/" + addr.Address().String())
-    }else{
-        if addr.baseMultiAddress != nil {
-            return []byte(addr.SAMAddress() + "/ntcp/" + addr.Address().String() + addr.baseMultiAddress.String())
-        }else{
-            return []byte(addr.SAMAddress() + "/ntcp/" + addr.Address().String())
-        }
-    }
+	if addr.I2POnly {
+		return []byte(addr.SAMAddress() + "/ntcp/" + addr.Address().String())
+	} else {
+		if addr.baseMultiAddress != nil {
+			return []byte(addr.SAMAddress() + "/ntcp/" + addr.Address().String() + addr.baseMultiAddress.String())
+		} else {
+			return []byte(addr.SAMAddress() + "/ntcp/" + addr.Address().String())
+		}
+	}
 }
 
 func (addr I2PMultiaddr) String() string {
@@ -66,7 +66,7 @@ func (addr I2PMultiaddr) Encapsulate(multiaddr ma.Multiaddr) ma.Multiaddr {
 
 	copy(rb, mb)
 	copy(rb[len(mb):], ob)
-	baddr, _ := NewI2PMultiaddr(string(rb), addr.I2POnly, addr.samhost + ":" + addr.samport )
+	baddr, _ := NewI2PMultiaddr(string(rb), addr.I2POnly, addr.samhost+":"+addr.samport)
 	return baddr
 }
 
