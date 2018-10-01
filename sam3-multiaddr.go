@@ -127,6 +127,7 @@ func NewI2PMultiaddr(protocol string, i2ponly bool, samaddr ...string) (I2PMulti
 	var m I2PMultiaddr
 	var err error
 	m.VCode = make([]byte, 2)
+	m.I2POnly = i2ponly
 	P_GARLIC_VSAM = make([]byte, 2)
 	binary.PutVarint(P_GARLIC_VSAM, int64(P_GARLIC_SAM))
 	if len(samaddr) == 1 {
