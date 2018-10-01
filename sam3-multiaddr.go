@@ -16,6 +16,8 @@ type I2PMultiaddr struct {
 	samhost          string
 	samport          string
 	bytes            []byte
+
+    I2POnly          bool
 	baseMultiAddress ma.Multiaddr
 	I2PAddr
 }
@@ -40,7 +42,15 @@ func (addr I2PMultiaddr) SAMAddress() string {
 
 //
 func (addr I2PMultiaddr) Bytes() []byte {
-	return []byte(addr.SAMAddress() + "/ntcp/" + addr.Address().String())
+    if addr.I2POnly {
+        return []byte(addr.SAMAddress() + "/ntcp/" + addr.Address().String())
+    }else{
+        if addr.baseMultiAddress != nil {
+            return []byte(addr.SAMAddress() + "/ntcp/" + addr.Address().String() + addr.baseMultiAddress.String())
+        }else{
+            return []byte(addr.SAMAddress() + "/ntcp/" + addr.Address().String())
+        }
+    }
 }
 
 func (addr I2PMultiaddr) String() string {
@@ -56,7 +66,7 @@ func (addr I2PMultiaddr) Encapsulate(multiaddr ma.Multiaddr) ma.Multiaddr {
 
 	copy(rb, mb)
 	copy(rb[len(mb):], ob)
-	baddr, _ := NewI2PMultiaddr(string(rb))
+	baddr, _ := NewI2PMultiaddr(string(rb), addr.I2POnly, addr.samhost + ":" + addr.samport )
 	return baddr
 }
 
@@ -113,7 +123,7 @@ func (addr I2PMultiaddr) ValueForProtocol(code int) (string, error) {
 	return addr.baseMultiAddress.ValueForProtocol(code)
 }
 
-func NewI2PMultiaddr(protocol string, samaddr ...string) (I2PMultiaddr, error) {
+func NewI2PMultiaddr(protocol string, i2ponly bool, samaddr ...string) (I2PMultiaddr, error) {
 	var m I2PMultiaddr
 	var err error
 	m.VCode = make([]byte, 2)
@@ -121,7 +131,7 @@ func NewI2PMultiaddr(protocol string, samaddr ...string) (I2PMultiaddr, error) {
 	binary.PutVarint(P_GARLIC_VSAM, int64(P_GARLIC_SAM))
 	if len(samaddr) == 1 {
 		if i := strings.SplitN(samaddr[0], "/sam/", 2); len(i) == 2 {
-			if j := strings.SplitN(i[1], ":", 2); len(j) == 2 {
+			if j := strings.Split(i[1], ":"); len(j) >= 2 && len(j) <= 3 {
 				m.samhost = j[0]
 				m.samport = j[1]
 			}

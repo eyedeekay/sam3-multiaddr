@@ -12,7 +12,7 @@ func TestNTCP(t *testing.T) {
 		log.Println(e)
 		t.Fatal(e.Error())
 	}
-	x, e := NewI2PMultiaddr("/ntcp/"+k.String(), "/sam/127.0.0.1:7657")
+	x, e := NewI2PMultiaddr("/ntcp/"+k.String(), true, "/sam/127.0.0.1:7657")
 	if e != nil {
 		log.Println(e)
 		t.Fatal(e.Error())
@@ -27,7 +27,7 @@ func TestSSU(t *testing.T) {
 		log.Println(e)
 		t.Fatal(e.Error())
 	}
-	x, e := NewI2PMultiaddr("/ssu/"+k.String(), "/sam/127.0.0.1:7657")
+	x, e := NewI2PMultiaddr("/ssu/"+k.String(), true, "/sam/127.0.0.1:7657")
 	if e == nil {
 		log.Println(e)
 		t.Fatal(e.Error())
