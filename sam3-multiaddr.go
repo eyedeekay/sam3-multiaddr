@@ -40,6 +40,10 @@ func (addr I2PMultiaddr) SAMAddress() string {
 	return "/sam/" + addr.samhost + ":" + addr.samport
 }
 
+func (addr I2PMultiaddr) SAMAddressString() string {
+	return addr.samhost + ":" + addr.samport
+}
+
 //
 func (addr I2PMultiaddr) Bytes() []byte {
 	if addr.I2POnly {
