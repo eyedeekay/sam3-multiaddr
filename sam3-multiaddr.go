@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"strings"
 
-	. "github.com/eyedeekay/sam3"
+	"github.com/eyedeekay/sam3"
 	ma "github.com/multiformats/go-multiaddr"
 )
 
+// I2PMultiaddr is an i2p-enabled multiaddr, with both types(TCP-like and UDP-like)
+// capabilities
 type I2PMultiaddr struct {
 	Name    string
 	Code    int
@@ -19,49 +21,57 @@ type I2PMultiaddr struct {
 
 	I2POnly          bool
 	baseMultiAddress ma.Multiaddr
-	I2PAddr
+	sam3.I2PAddr
 }
 
 // These were picked arbitrarily. They will probably change.
-var P_GARLIC_NTCP = 445
-var P_GARLIC_SSU = 890
 
-var P_GARLIC_SAM = 765
+// GarlicNTCP indicates an i2p streaming connection
+const GarlicNTCP = 445
 
-var P_GARLIC_VSAM []byte
+// GarlicSSU indicates an i2p datagram connection
+const GarlicSSU = 890
+
+// GarlicSAM indicates an i2p SAM connection
+const GarlicSAM = 765
+
+// GarlicVSAM stores the VCode of the connection
+var GarlicVSAM []byte
 
 //binary.PutVarint(m.VCode, int64(m.Code))
 
-func (addr I2PMultiaddr) Address() *I2PAddr {
+// Address converts the I2PMultiaddr into a sam3.I2PAddr which implements net.Addr
+func (addr I2PMultiaddr) Address() *sam3.I2PAddr {
 	return &addr.I2PAddr
 }
 
+// SAMAddress returns "/sam/SAMq Host:SAM Port" of the I2PMultiaddr as a string
 func (addr I2PMultiaddr) SAMAddress() string {
 	return "/sam/" + addr.samhost + ":" + addr.samport
 }
 
+// SAMAddressString returns the SAM address as "SAM host:SAM port"
 func (addr I2PMultiaddr) SAMAddressString() string {
 	return addr.samhost + ":" + addr.samport
 }
 
-//
+// Bytes returns the whole address as a slice of bytes
 func (addr I2PMultiaddr) Bytes() []byte {
 	if addr.I2POnly {
 		return []byte(addr.SAMAddress() + "/ntcp/" + addr.Address().String())
-	} else {
-		if addr.baseMultiAddress != nil {
-			return []byte(addr.SAMAddress() + "/ntcp/" + addr.Address().String() + addr.baseMultiAddress.String())
-		} else {
-			return []byte(addr.SAMAddress() + "/ntcp/" + addr.Address().String())
-		}
 	}
+	if addr.baseMultiAddress != nil {
+		return []byte(addr.SAMAddress() + "/ntcp/" + addr.Address().String() + addr.baseMultiAddress.String())
+	}
+	return []byte(addr.SAMAddress() + "/ntcp/" + addr.Address().String())
 }
 
+// String returns the I2PMultiaddr as a string
 func (addr I2PMultiaddr) String() string {
 	return string(addr.Bytes())
 }
 
-//
+// Encapsulate implements Multiaddr
 func (addr I2PMultiaddr) Encapsulate(multiaddr ma.Multiaddr) ma.Multiaddr {
 	mb := addr.Bytes()
 	ob := multiaddr.Bytes()
@@ -74,6 +84,7 @@ func (addr I2PMultiaddr) Encapsulate(multiaddr ma.Multiaddr) ma.Multiaddr {
 	return baddr
 }
 
+// Decapsulate implements Multiaddr
 func (addr I2PMultiaddr) Decapsulate(multiaddr ma.Multiaddr) ma.Multiaddr {
 	ms := string(addr.Bytes())
 	os := string(multiaddr.Bytes())
@@ -87,6 +98,7 @@ func (addr I2PMultiaddr) Decapsulate(multiaddr ma.Multiaddr) ma.Multiaddr {
 	return baddr
 }
 
+// Protocols implements Multiaddr
 func (addr I2PMultiaddr) Protocols() []ma.Protocol {
 	p := []ma.Protocol{}
 	p = append(p, ma.Protocol{
@@ -97,9 +109,9 @@ func (addr I2PMultiaddr) Protocols() []ma.Protocol {
 		Path:  false,
 	})
 	p = append(p, ma.Protocol{
-		Code:  P_GARLIC_SAM,
+		Code:  GarlicSAM,
 		Name:  "sam",
-		VCode: P_GARLIC_VSAM,
+		VCode: GarlicVSAM,
 		Size:  0,
 		Path:  false,
 	})
@@ -113,6 +125,7 @@ func (addr I2PMultiaddr) Protocols() []ma.Protocol {
 	return p
 }
 
+// Equal determines if two I2PMultiaddr's are equal by comparing the strings.
 func (addr I2PMultiaddr) Equal(multiaddr ma.Multiaddr) bool {
 	if multiaddr.String() == addr.String() {
 		return true
@@ -120,6 +133,7 @@ func (addr I2PMultiaddr) Equal(multiaddr ma.Multiaddr) bool {
 	return false
 }
 
+// ValueForProtocol implements I2PMultiaddr
 func (addr I2PMultiaddr) ValueForProtocol(code int) (string, error) {
 	if code == addr.Code {
 		return string(addr.I2PAddr.String()), nil
@@ -127,13 +141,15 @@ func (addr I2PMultiaddr) ValueForProtocol(code int) (string, error) {
 	return addr.baseMultiAddress.ValueForProtocol(code)
 }
 
+// NewI2PMultiaddr creates a new i2p multiaddr, with a protocol string(ntcp, ssu)
+// a switch for only being an i2p address, and an optional SAM Host/Port pair
 func NewI2PMultiaddr(protocol string, i2ponly bool, samaddr ...string) (I2PMultiaddr, error) {
 	var m I2PMultiaddr
 	var err error
 	m.VCode = make([]byte, 2)
 	m.I2POnly = i2ponly
-	P_GARLIC_VSAM = make([]byte, 2)
-	binary.PutVarint(P_GARLIC_VSAM, int64(P_GARLIC_SAM))
+	GarlicVSAM = make([]byte, 2)
+	binary.PutVarint(GarlicVSAM, int64(GarlicSAM))
 	if len(samaddr) == 1 {
 		if i := strings.SplitN(samaddr[0], "/sam/", 2); len(i) == 2 {
 			if j := strings.Split(i[1], ":"); len(j) >= 2 && len(j) <= 3 {
@@ -149,26 +165,26 @@ func NewI2PMultiaddr(protocol string, i2ponly bool, samaddr ...string) (I2PMulti
 	}
 	if i := strings.SplitN(protocol, "/ntcp/", 2); len(i) == 2 {
 		s := strings.Split(i[1], "/")
-		m.I2PAddr, err = NewI2PAddrFromString(s[0])
+		m.I2PAddr, err = sam3.NewI2PAddrFromString(s[0])
 		if err != nil {
 			return m, err
 		}
 		m.baseMultiAddress = m.Decapsulate(m)
 		m.Name = "ntcp"
-		m.Code = P_GARLIC_NTCP
+		m.Code = GarlicNTCP
 		binary.PutVarint(m.VCode, int64(m.Code))
 		m.bytes = m.Bytes()
 		return m, nil
 	}
 	if i := strings.SplitN(protocol, "/ssu/", 2); len(i) == 2 {
 		s := strings.Split(i[1], "/")
-		m.I2PAddr, err = NewI2PAddrFromString(s[0])
+		m.I2PAddr, err = sam3.NewI2PAddrFromString(s[0])
 		if err != nil {
 			return m, err
 		}
 		m.baseMultiAddress = m.Decapsulate(m)
 		m.Name = "ssu"
-		m.Code = P_GARLIC_SSU
+		m.Code = GarlicSSU
 		binary.PutVarint(m.VCode, int64(m.Code))
 		m.bytes = m.Bytes()
 		return m, fmt.Errorf("sam3-multiaddr Error: %s, %s", "ssu isn't implemented yet. Come back later.", s[0])
